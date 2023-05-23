@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.Objects;
 
 class OpenExchangeRatesConnector {
-    private static final String API_KEY_FILE_PATH = "api_key.txt";
+    private static final String API_KEY_FILE_PATH = "resources/api_key.txt";
     private static final String API_URL_BASE = "https://openexchangerates.org/api/latest.json?app_id=";
 
     private static String readAPIKey() throws IOException {

@@ -1,0 +1,2 @@
+// Put your Open Exchange Rates App ID here. See https://openexchangerates.org/ (Put the API Key in the next line).
+<Replace this line with your API key>
