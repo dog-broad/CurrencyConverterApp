@@ -1,10 +1,16 @@
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 class OpenExchangeRatesConnector {
     private static final String API_KEY_FILE_PATH = "api_key.txt";
@@ -69,5 +75,68 @@ class OpenExchangeRatesConnector {
         String apiKey = reader.readLine();
         reader.close();
         return apiKey;
+    }
+
+    public double getExchangeRate(String fromCurrency, String toCurrency) {
+        double exchangeRate = 0;
+        try{
+            // Create URL
+            URL url = new URL(API_URL_BASE + readAPIKey());
+
+            // Open connection
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Set request method to GET
+            connection.setRequestMethod("GET");
+
+            // Get response code
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line;
+                StringBuilder response = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                // Parse the JSON response
+                JSONObject jsonObject = new JSONObject(response.toString());
+
+                // print the JSON response
+                System.out.println(jsonObject.toString());
+
+
+                // Get the "rates" object from the JSON response
+                JSONObject ratesObject = jsonObject.getJSONObject("rates");
+
+                JSONArray names = ratesObject.names();
+                List<String> currencies = new ArrayList<>();
+                for (int i = 0; i < names.length(); i++) {
+                    currencies.add(names.getString(i));
+                }
+                System.out.println(currencies);
+
+                // Get the exchange rate for the fromCurrency and toCurrency
+                double fromRate = ratesObject.getDouble(fromCurrency);
+                double toRate = ratesObject.getDouble(toCurrency);
+
+                // Calculate the exchange rate
+                exchangeRate = toRate / fromRate;
+            } else {
+                // Handle the error
+                System.out.println("Error: " + responseCode);
+            }
+            // Disconnect the connection
+            connection.disconnect();
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return exchangeRate;
     }
 }
