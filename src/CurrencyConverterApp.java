@@ -5,7 +5,6 @@
  */
 
 import javax.swing.*;
-// Import flatlaf library
 import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.Image;
 import java.io.IOException;
@@ -60,6 +59,8 @@ public class CurrencyConverterApp {
             // from currency combo box
             fromCurrencyComboBox = new JComboBox<>(allCurrencyList);
             fromCurrencyComboBox.setBounds(150, 100, 100, 30);
+            // Limit combo box to only show the first 5 items
+            fromCurrencyComboBox.setMaximumRowCount(5);
             frame.add(fromCurrencyComboBox);
 
             // to currency label
@@ -70,16 +71,20 @@ public class CurrencyConverterApp {
             // to currency combo box
             toCurrencyComboBox = new JComboBox<>(allCurrencyList);
             toCurrencyComboBox.setBounds(150, 150, 100, 30);
+            toCurrencyComboBox.setMaximumRowCount(5);
             frame.add(toCurrencyComboBox);
 
             // convert button
             JButton convertButton = new JButton("Convert");
-            convertButton.setBounds(50, 200, 100, 30);
+            convertButton.setBounds(60, 200, 100, 30);
             frame.add(convertButton);
 
             // result label
             resultLabel = new JLabel();
-            resultLabel.setBounds(50, 250, 100, 30);
+            // centralize the result label
+            resultLabel.setHorizontalAlignment(JLabel.CENTER);
+            // set label bounds
+            resultLabel.setBounds(0, 250, 350, 30);
             // set label font size
             resultLabel.setFont(resultLabel.getFont().deriveFont(20f));
             frame.add(resultLabel);
@@ -101,8 +106,15 @@ public class CurrencyConverterApp {
                 double exchangeRate = openExchangeRatesConnector.getExchangeRate(fromCurrency, toCurrency);
                 // Calculate the result
                 double result = amount * exchangeRate;
-                // Set the result label text
-                resultLabel.setText(String.valueOf(result));
+                // Get the currency symbol for the toCurrency
+                Currency currency = Currency.getInstance(toCurrency);
+                String currencySymbol = currency.getSymbol(Locale.getDefault());
+                // Get the currency symbol for the fromCurrency
+                Currency currency2 = Currency.getInstance(fromCurrency);
+                String currencySymbol2 = currency2.getSymbol(Locale.getDefault());
+
+                // Display the result
+                resultLabel.setText(String.format("%s %.2f = %s %.2f", currencySymbol2, amount, currencySymbol, result));
             });
 
             // Get the currency code selected in the fromCurrencyComboBox
@@ -123,6 +135,11 @@ public class CurrencyConverterApp {
             toCurrencyIconLabel.setBounds(260, 150, 30, 30);
             frame.add(toCurrencyIconLabel);
 
+            // Create a Swap button in between the left of fromCurrencyComboBox and toCurrencyComboBox
+            JButton swapButton = new JButton("Swap");
+            swapButton.setBounds(170, 200, 100, 30);
+            frame.add(swapButton);
+
             // Update the flag icons when the fromCurrencyComboBox selection changes
             fromCurrencyComboBox.addActionListener(e -> {
                 // Get the currency code selected in the fromCurrencyComboBox
@@ -141,6 +158,32 @@ public class CurrencyConverterApp {
                 ImageIcon newToCurrencyIcon = getFlagIcon(newToCurrencyCode);
                 // Update the toCurrencyIconLabel
                 toCurrencyIconLabel.setIcon(newToCurrencyIcon);
+            });
+
+            // Swap the fromCurrencyComboBox and toCurrencyComboBox selections when the swap button is clicked
+            swapButton.addActionListener(e -> {
+                // Get the currency code selected in the fromCurrencyComboBox
+                String fromCurrencyCode1 = (String) fromCurrencyComboBox.getSelectedItem();
+                // Get the currency code selected in the toCurrencyComboBox
+                String toCurrencyCode1 = (String) toCurrencyComboBox.getSelectedItem();
+                // Set the fromCurrencyComboBox selection to the toCurrencyComboBox selection
+                fromCurrencyComboBox.setSelectedItem(toCurrencyCode1);
+                // Set the toCurrencyComboBox selection to the fromCurrencyComboBox selection
+                toCurrencyComboBox.setSelectedItem(fromCurrencyCode1);
+                // call convert button action listener
+                convertButton.doClick();
+            });
+
+            // If comboBox is selected and amount is entered, call convert button action listener
+            fromCurrencyComboBox.addActionListener(e -> {
+                if (!amountTextField.getText().isEmpty()) {
+                    convertButton.doClick();
+                }
+            });
+            toCurrencyComboBox.addActionListener(e -> {
+                if (!amountTextField.getText().isEmpty()) {
+                    convertButton.doClick();
+                }
             });
 
             // Display the JFrame
